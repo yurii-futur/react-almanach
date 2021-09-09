@@ -1,28 +1,41 @@
 import { useState } from 'react';
 import './App.css';
-import Button from './components/Button/Button';
-import Input from './components/Input/Input';
+import Form from './components/Form/Form';
 import PostList from './components/PostList/PostList';
+import Select from './components/Select/Select';
 
 function App() {
 
-  const [posts, setPosts] = useState([{title: 'First title', body: 'Description of first post', id: Date.now()}])
-  const [post, setPost] = useState({title: '', body: ''})
+  const [posts, setPosts] = useState([{ title: 'First title', body: 'Description of first post', id: Date.now() }])
+  const [selectedSort, setSelectedSort] = useState('')
 
-  const addNewPost = (e) => {
-    e.preventDefault();
-    setPosts([...posts, {...post, id: Date.now()}])
-    setPost({title: '', body: ''})
+  const addNewPost = (newPost) => {
+    setPosts([...posts, newPost])
   }
+
+  const removePost = (post) => {
+    const filteredPosts = posts.filter(p => p.id !== post.id)
+    setPosts(filteredPosts)
+  }
+
+  const options = [
+    {
+      title: 'По заголовку', value: 'title'
+    },
+    {
+      title: 'По описанию', value: 'body'
+    },
+  ]
 
   return (
     <div className="App">
-      <form>
-        <Input value={post.title} onChange={(e) => setPost({...post, title: e.target.value})} placeholder="Title" />
-        <Input value={post.body} onChange={(e) => setPost({...post, body: e.target.value})} placeholder="Description"/>
-        <Button onClick={addNewPost}>Send</Button>
-      </form>
-      <PostList posts={posts}/>
+      <Form add={addNewPost} />
+      <Select value={selectedSort} onChange={sort => setSelectedSort(sort)} defaultValue='Сортировка по' options={options} />
+      {posts.length !== 0 ?
+        <PostList remove={removePost} posts={posts} />
+        :
+        <h1>No posts</h1>
+      }
     </div>
   );
 }
