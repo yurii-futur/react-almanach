@@ -1,17 +1,29 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import Form from './components/Form/Form';
 import PostList from './components/PostList/PostList';
 import Filter from './components/Filter/Filter';
+import Modal from './components/Modal/Modal'
+import Button from './components/Button/Button';
+import { usePosts } from './Hooks/usePosts';
+import { api } from './API/api';
+import Loader from './components/Loader/Loader';
+import { useFetch } from './Hooks/useFetch';
 
 function App() {
 
   const [posts, setPosts] = useState([{ title: 'First title', body: 'Description of first post', id: Date.now() }])
   const [filter, setFilter] = useState({sort: '', filter: ''})
+  const [visible, setVisible] = useState(false)
+  const [fetchPosts, isLoading, error] = useFetch( async () => {
+    const posts = await api.getAll();
+    setPosts(posts)
+  })
   
 
   const addNewPost = (newPost) => {
     setPosts([...posts, newPost])
+    setVisible(false)
   }
 
   const removePost = (post) => {
@@ -19,19 +31,15 @@ function App() {
     setPosts(filteredPosts)
   }
 
-  const sortedPosts = useMemo(() => {
-    if (filter.sort) {
-      return [...posts].sort((a, b) => a[filter.sort].localeCompare(b[filter.sort]));
-    }
-    return posts
-  }, [filter.sort, posts])
+  useEffect(() => {
+    fetchPosts()
+  }, [])
 
-  const sortedAndFilteredPosts = useMemo(() => {
-    if(filter.query) {
-      return sortedPosts.filter( s => s.title.toLowerCase().includes(filter.query.toLowerCase()))
-    } return sortedPosts
-  }, [filter.query, sortedPosts])
+  
 
+  
+  
+  const sortedAndFilteredPosts = usePosts(filter.sort, posts, filter.query)
 
   const options = [
     {
@@ -44,12 +52,16 @@ function App() {
 
   return (
     <div className="App">
-      <Form add={addNewPost} />
+      <Button onClick={() => setVisible(true)}>Create post</Button>
+      <Modal visible={visible}>
+        <Form add={addNewPost} />
+      </Modal>
+      
       <Filter filter={filter} setFilter={setFilter} options={options}/>
-      {sortedAndFilteredPosts.length !== 0 ?
+      {!isLoading ?
         <PostList remove={removePost} posts={sortedAndFilteredPosts} />
         :
-        <h1>No posts</h1>
+        <Loader />
       }
     </div>
   );
