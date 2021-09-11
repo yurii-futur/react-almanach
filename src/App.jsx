@@ -3,15 +3,19 @@ import './App.css';
 import Form from './components/Form/Form';
 import PostList from './components/PostList/PostList';
 import Filter from './components/Filter/Filter';
+import Modal from './components/Modal/Modal'
+import Button from './components/Button/Button';
 
 function App() {
 
   const [posts, setPosts] = useState([{ title: 'First title', body: 'Description of first post', id: Date.now() }])
   const [filter, setFilter] = useState({sort: '', filter: ''})
+  const [visible, setVisible] = useState(false)
   
 
   const addNewPost = (newPost) => {
     setPosts([...posts, newPost])
+    setVisible(false)
   }
 
   const removePost = (post) => {
@@ -44,7 +48,11 @@ function App() {
 
   return (
     <div className="App">
-      <Form add={addNewPost} />
+      <Button onClick={() => setVisible(true)}>Create post</Button>
+      <Modal visible={visible}>
+        <Form add={addNewPost} />
+      </Modal>
+      
       <Filter filter={filter} setFilter={setFilter} options={options}/>
       {sortedAndFilteredPosts.length !== 0 ?
         <PostList remove={removePost} posts={sortedAndFilteredPosts} />
