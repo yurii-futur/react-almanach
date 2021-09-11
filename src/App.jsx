@@ -1,17 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import Form from './components/Form/Form';
 import PostList from './components/PostList/PostList';
 import Filter from './components/Filter/Filter';
 import Modal from './components/Modal/Modal'
 import Button from './components/Button/Button';
-import { usePosts } from './components/Hooks/usePosts';
+import { usePosts } from './Hooks/usePosts';
+import { api } from './API/api';
+import Loader from './components/Loader/Loader';
+import { useFetch } from './Hooks/useFetch';
 
 function App() {
 
   const [posts, setPosts] = useState([{ title: 'First title', body: 'Description of first post', id: Date.now() }])
   const [filter, setFilter] = useState({sort: '', filter: ''})
   const [visible, setVisible] = useState(false)
+  const [fetchPosts, isLoading, error] = useFetch( async () => {
+    const posts = await api.getAll();
+    setPosts(posts)
+  })
   
 
   const addNewPost = (newPost) => {
@@ -24,6 +31,14 @@ function App() {
     setPosts(filteredPosts)
   }
 
+  useEffect(() => {
+    fetchPosts()
+  }, [])
+
+  
+
+  
+  
   const sortedAndFilteredPosts = usePosts(filter.sort, posts, filter.query)
 
   const options = [
@@ -43,10 +58,10 @@ function App() {
       </Modal>
       
       <Filter filter={filter} setFilter={setFilter} options={options}/>
-      {sortedAndFilteredPosts.length !== 0 ?
+      {!isLoading ?
         <PostList remove={removePost} posts={sortedAndFilteredPosts} />
         :
-        <h1>No posts</h1>
+        <Loader />
       }
     </div>
   );
