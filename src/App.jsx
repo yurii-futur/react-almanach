@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import './App.css';
 import Form from './components/Form/Form';
 import PostList from './components/PostList/PostList';
-import Select from './components/Select/Select';
+import Filter from './components/Filter/Filter';
 
 function App() {
 
   const [posts, setPosts] = useState([{ title: 'First title', body: 'Description of first post', id: Date.now() }])
-  const [selectedSort, setSelectedSort] = useState('')
+  const [filter, setFilter] = useState({sort: '', filter: ''})
+  
 
   const addNewPost = (newPost) => {
     setPosts([...posts, newPost])
@@ -17,6 +18,20 @@ function App() {
     const filteredPosts = posts.filter(p => p.id !== post.id)
     setPosts(filteredPosts)
   }
+
+  const sortedPosts = useMemo(() => {
+    if (filter.sort) {
+      return [...posts].sort((a, b) => a[filter.sort].localeCompare(b[filter.sort]));
+    }
+    return posts
+  }, [filter.sort, posts])
+
+  const sortedAndFilteredPosts = useMemo(() => {
+    if(filter.query) {
+      return sortedPosts.filter( s => s.title.toLowerCase().includes(filter.query.toLowerCase()))
+    } return sortedPosts
+  }, [filter.query, sortedPosts])
+
 
   const options = [
     {
@@ -30,9 +45,9 @@ function App() {
   return (
     <div className="App">
       <Form add={addNewPost} />
-      <Select value={selectedSort} onChange={sort => setSelectedSort(sort)} defaultValue='Сортировка по' options={options} />
-      {posts.length !== 0 ?
-        <PostList remove={removePost} posts={posts} />
+      <Filter filter={filter} setFilter={setFilter} options={options}/>
+      {sortedAndFilteredPosts.length !== 0 ?
+        <PostList remove={removePost} posts={sortedAndFilteredPosts} />
         :
         <h1>No posts</h1>
       }
